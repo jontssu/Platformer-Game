@@ -118,6 +118,11 @@ void Game::updateInput()
 	//Tile functions
 	if (sf::Mouse::isButtonPressed(mouseMappings["BTN_ADD_TILE"]))
 	{
+		sf::FloatRect playerBounds = player->getGlobalBounds();
+		sf::FloatRect mouseBounds = sf::FloatRect(
+			{float(mouseX * tileMap->getTileSize()), float(mouseY * tileMap->getTileSize())},
+			{float(tileMap->getTileSize()), float(tileMap->getTileSize())}
+		);
 		tileMap->addTile(mouseX, mouseY);
 	}
 	else if (sf::Mouse::isButtonPressed(mouseMappings["BTN_REMOVE_TILE"]))
