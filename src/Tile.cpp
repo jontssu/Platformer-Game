@@ -8,6 +8,9 @@ Tile::Tile(const unsigned& grid_pos_x, const unsigned& grid_pos_y, const unsigne
 {
 	sprite.setTextureRect(texture_rect);
 	sprite.setPosition({float(grid_pos_x * tile_size), float(grid_pos_y * tile_size)});
+
+	body.setSize({float(tile_size), float(tile_size)});
+	body.setPosition(sprite.getPosition());
 }
 
 const sf::FloatRect Tile::getGlobalBounds() const

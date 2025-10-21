@@ -14,7 +14,7 @@ void Player::initVariables()
 {
 	animState = IDLE;
 	isMoving = false;
-	canJump = true;
+	canJump = false;
 }
 
 void Player::initPhysics()
@@ -38,10 +38,13 @@ void Player::initTexture()
 void Player::initSprite()
 {
 	sprite.setPosition({0.f, 0.f});
-	sprite.setScale({1.5f, 1.5f});
-	currentFrame = sf::IntRect({0, 0}, {64, 64});
+	sprite.setScale({PlayerScale, PlayerScale});
+	currentFrame = sf::IntRect({0, 0}, {32, 48});
 	sprite.setTextureRect(currentFrame);
 	
+	// Simple hitbox with fixed size
+	colliderBody.setSize({PlayerHitboxWidth, PlayerHitboxHeight});
+	colliderBody.setPosition(sprite.getPosition());
 }
 
 void Player::initAnimations()
@@ -52,26 +55,6 @@ void Player::initAnimations()
 
 void Player::updateMovement()
 {
-	animState = IDLE;
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-	{
-		move(1.f, 0.f);
-	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-	{
-		move(-1.f, 0.f);
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && canJump)
-	{
-		velocity.y = -70.f;
-		canJump = false;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-	{
-		move(0.f, 1.f);
-		animState = FALLING;
-	}
 	if (velocity.x > 0.f)
 		animState = MOVING_RIGHT;
 	else if (velocity.x < 0.f)
@@ -86,10 +69,10 @@ void Player::updateAnimations()
 	{
 		if (animationTimer.getElapsedTime().asSeconds() >= 0.2f || getAnimSwitch())  // 0.15 seconds per frame
 		{
-			currentFrame.position.y = 1536;  // Third row for idle
+			currentFrame.position.y = 1552;  // Third row for idle
 			currentFrame.position.x += 64;
 			if (currentFrame.position.x >= 128)  // 2 frames of animation
-				currentFrame.position.x = 0;
+				currentFrame.position.x = 16;
 			animationTimer.restart();
 			sprite.setTextureRect(currentFrame);
 		}
@@ -99,13 +82,13 @@ void Player::updateAnimations()
 	{
 		if (animationTimer.getElapsedTime().asSeconds() >= 0.1f || getAnimSwitch())  // 0.15 seconds per frame
 		{
-			currentFrame.position.y = 704;  // Fourth row
+			currentFrame.position.y = 720;  // Fourth row
 			currentFrame.position.x += 64;
 			if (currentFrame.position.x >= 512)  // 6 frames of animation
-				currentFrame.position.x = 0;
+				currentFrame.position.x = 16;
 			animationTimer.restart();
 			sprite.setTextureRect(currentFrame);
-			sprite.setScale({1.5f, 1.5f});
+			sprite.setScale({PlayerScale, PlayerScale});
 			sprite.setOrigin({0.f, 0.f});
 		}
 	}
@@ -113,14 +96,14 @@ void Player::updateAnimations()
 	{
 		if (animationTimer.getElapsedTime().asSeconds() >= 0.1f || getAnimSwitch())  // 0.15 seconds per frame
 		{
-			currentFrame.position.y = 704;  // Fourth row
+			currentFrame.position.y = 720;  // Fourth row
 			currentFrame.position.x += 64;
 			if (currentFrame.position.x >= 512)  // 6 frames of animation
-				currentFrame.position.x = 0;
+				currentFrame.position.x = 16;
 			animationTimer.restart();
 			sprite.setTextureRect(currentFrame);
-			sprite.setScale({-1.5f, 1.5f});
-			sprite.setOrigin({sprite.getGlobalBounds().size.x / 1.5f, 0.f});
+			sprite.setScale({-PlayerScale, PlayerScale});
+			sprite.setOrigin({sprite.getGlobalBounds().size.x / PlayerScale, 0.f});
 		}
 	}
 		// else if (animState == JUMPING) // JUMPING Animation
@@ -137,11 +120,9 @@ void Player::updateAnimations()
 		// 	if (currentFrame.position.x >= 384)  // 6 frames of animation
 		// 		currentFrame.position.x = 0;
 		// }
-
-		// Reset timer only after advancing the frame
 }
 
-const bool& Player::getAnimSwitch()
+const bool Player::getAnimSwitch()
 {
 	bool anim_switch = animationSwitch;
 
@@ -161,9 +142,20 @@ const sf::FloatRect Player::getGlobalBounds() const
 	return sprite.getGlobalBounds();
 }
 
+const sf::Vector2f Player::getVelocity() const
+{
+	return velocity;
+}
+
+Collider Player::getCollider()
+{
+	return Collider(colliderBody);
+}
+
 void Player::setPosition(const float x, const float y)
 {
 	sprite.setPosition({x, y});
+	colliderBody.setPosition({x, y});
 }
 
 void Player::resetVelocityY()
@@ -182,9 +174,15 @@ void Player::move(const float dirX, const float dirY)
 	//Acceleration
 	velocity.x += dirX * acceleration;
 
-	//Limit velocitycty
+	//Limit velocity
 	if (std::abs(velocity.x) > velocityMax)
 		velocity.x = (velocity.x > 0) ? velocityMax : -velocityMax;
+}
+
+void Player::jump()
+{
+	velocity.y = -70.f;
+	canJump = false;
 }
 
 void Player::updatePhysics()
@@ -206,6 +204,7 @@ void Player::updatePhysics()
 	if (std::abs(velocity.x) <= 1.f)
 		velocity.x = 0.f;
 	sprite.move(velocity);
+	colliderBody.move(velocity); // Keep collider in sync with sprite
 }
 
 void Player::update()
@@ -216,16 +215,21 @@ void Player::update()
 	
 	// Apply the current frame to the sprite
 	sprite.setTextureRect(currentFrame);
+	
+	// Update hitbox size in case constants changed
+	colliderBody.setSize({PlayerHitboxWidth, PlayerHitboxHeight});
 }
 
 void Player::render(sf::RenderTarget& target)
 {
 	target.draw(sprite);
 
-	sf::CircleShape circ;
-
-	circ.setRadius(5.f);
-	circ.setFillColor(sf::Color::Red);
-	circ.setPosition(getPosition());
-	target.draw(circ);
+	// Draw hitbox for debugging
+	sf::RectangleShape hitbox;
+	hitbox.setPosition(this->getPosition());
+	hitbox.setSize({this->getGlobalBounds().size.x, this->getGlobalBounds().size.y});
+	hitbox.setFillColor(sf::Color::Transparent);
+	hitbox.setOutlineThickness(1.f);
+	hitbox.setOutlineColor(sf::Color::Red);
+	target.draw(hitbox);
 }

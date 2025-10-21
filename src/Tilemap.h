@@ -10,6 +10,7 @@ class Tilemap {
 		virtual ~Tilemap();
 		
 		inline const int& getTileSize() const { return tileSize; }
+		inline const std::vector< std::vector<Tile*> >& getTiles() const { return tiles; }
 
 		//Functions
 		void addTile(unsigned x, unsigned y);

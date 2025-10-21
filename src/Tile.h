@@ -1,4 +1,5 @@
 #pragma once
+#include "Collider.h"
 
 class Tile {
 	public:
@@ -7,10 +8,13 @@ class Tile {
 
 		const sf::FloatRect getGlobalBounds() const;
 
+		Collider getCollider() { return Collider(body); }
+
 		void update();
 		void render(sf::RenderTarget& target);
 
 	private:
+	sf::RectangleShape body;
 	sf::Sprite sprite;
 	const bool damaging;
 
