@@ -15,6 +15,8 @@ void Player::initVariables()
 	animState = IDLE;
 	isMoving = false;
 	canJump = false;
+	isCrouching = false;
+	canStand = true;
 }
 
 void Player::initPhysics()
@@ -55,7 +57,13 @@ void Player::initAnimations()
 
 void Player::updateMovement()
 {
-	if (velocity.x > 0.f)
+	if (isCrouching && velocity.x == 0.f)
+		animState = CROUCHING;
+	else if (isCrouching && velocity.x > 0.f)
+		animState = CROUCHING_RIGHT;
+	else if (isCrouching && velocity.x < 0.f)
+		animState = CROUCHING_LEFT;
+	else if (velocity.x > 0.f)
 		animState = MOVING_RIGHT;
 	else if (velocity.x < 0.f)
 		animState = MOVING_LEFT;
@@ -73,6 +81,7 @@ void Player::updateAnimations()
 			currentFrame.position.x += 64;
 			if (currentFrame.position.x >= 128)  // 2 frames of animation
 				currentFrame.position.x = 16;
+			currentFrame.size = {32, 48};    // Normal hitbox size
 			animationTimer.restart();
 			sprite.setTextureRect(currentFrame);
 		}
@@ -86,6 +95,7 @@ void Player::updateAnimations()
 			currentFrame.position.x += 64;
 			if (currentFrame.position.x >= 512)  // 6 frames of animation
 				currentFrame.position.x = 16;
+			currentFrame.size = {32, 48};    // Normal hitbox size
 			animationTimer.restart();
 			sprite.setTextureRect(currentFrame);
 			sprite.setScale({PlayerScale, PlayerScale});
@@ -100,26 +110,56 @@ void Player::updateAnimations()
 			currentFrame.position.x += 64;
 			if (currentFrame.position.x >= 512)  // 6 frames of animation
 				currentFrame.position.x = 16;
+			currentFrame.size = {32, 48};    // Normal hitbox size
 			animationTimer.restart();
 			sprite.setTextureRect(currentFrame);
 			sprite.setScale({-PlayerScale, PlayerScale});
 			sprite.setOrigin({sprite.getGlobalBounds().size.x / PlayerScale, 0.f});
 		}
 	}
-		// else if (animState == JUMPING) // JUMPING Animation
-		// {
-		// 	currentFrame.position.y = 0;  // First row
-		// 	currentFrame.position.x += 64;
-		// 	if (currentFrame.position.x >= 384)  // 6 frames of animation
-		// 		currentFrame.position.x = 0;
-		// }
-		// else if (animState == FALLING) // FALLING Animation
-		// {
-		// 	currentFrame.position.y = 128;  // Third row
-		// 	currentFrame.position.x += 64;
-		// 	if (currentFrame.position.x >= 384)  // 6 frames of animation
-		// 		currentFrame.position.x = 0;
-		// }
+	else if (animState == CROUCHING) // CROUCHING Animation (stationary)
+	{
+		if (animationTimer.getElapsedTime().asSeconds() >= 0.1f || getAnimSwitch())
+		{
+			currentFrame.position.y = 2080;  // Crouch row
+			currentFrame.position.x = 80;    // Single frame for stationary crouch
+			currentFrame.size = {32, 32};    // Smaller hitbox for crouching
+			animationTimer.restart();
+			sprite.setTextureRect(currentFrame);
+			sprite.setScale({PlayerScale, PlayerScale});  // Normal scale
+			sprite.setOrigin({0.f, 0.f});                 // Normal origin
+		}
+	}
+	else if (animState == CROUCHING_RIGHT) // CROUCHING RIGHT Animation
+	{
+		if (animationTimer.getElapsedTime().asSeconds() >= 0.1f || getAnimSwitch())
+		{
+			currentFrame.position.y = 2016;  // Crouch movement row
+			currentFrame.position.x += 64;
+			if (currentFrame.position.x >= 144)  // Animation frames
+				currentFrame.position.x = 16;
+			currentFrame.size = {32, 32};    // Smaller hitbox for crouching
+			animationTimer.restart();
+			sprite.setTextureRect(currentFrame);
+			sprite.setScale({-PlayerScale, PlayerScale}); // Flipped scale (facing right)
+			sprite.setOrigin({sprite.getGlobalBounds().size.x / PlayerScale, 0.f}); // Adjusted origin for flip
+		}
+	}
+	else if (animState == CROUCHING_LEFT) // CROUCHING LEFT Animation
+	{
+		if (animationTimer.getElapsedTime().asSeconds() >= 0.1f || getAnimSwitch())
+		{
+			currentFrame.position.y = 2016;  // Crouch movement row
+			currentFrame.position.x += 64;
+			if (currentFrame.position.x >= 144)  // Animation frames
+				currentFrame.position.x = 16;
+			currentFrame.size = {32, 32};    // Smaller hitbox for crouching
+			animationTimer.restart();
+			sprite.setTextureRect(currentFrame);
+			sprite.setScale({PlayerScale, PlayerScale});  // Normal scale (facing left)
+			sprite.setOrigin({0.f, 0.f});                 // Normal origin
+		}
+	}
 }
 
 const bool Player::getAnimSwitch()
@@ -224,10 +264,9 @@ void Player::render(sf::RenderTarget& target)
 {
 	target.draw(sprite);
 
-	// Draw hitbox for debugging
 	sf::RectangleShape hitbox;
-	hitbox.setPosition(this->getPosition());
-	hitbox.setSize({this->getGlobalBounds().size.x, this->getGlobalBounds().size.y});
+	hitbox.setPosition(this->getPosition());  // Player's world position
+	hitbox.setSize({(float)currentFrame.size.x * PlayerScale, (float)currentFrame.size.y * PlayerScale});  // Frame size with scale
 	hitbox.setFillColor(sf::Color::Transparent);
 	hitbox.setOutlineThickness(1.f);
 	hitbox.setOutlineColor(sf::Color::Red);

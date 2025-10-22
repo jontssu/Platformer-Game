@@ -9,7 +9,9 @@ enum PLAYER_ANIMATION_STATES {
 	MOVING_LEFT,
 	MOVING_RIGHT,
 	JUMPING,
-	FALLING
+	CROUCHING,
+	CROUCHING_LEFT,
+	CROUCHING_RIGHT
 };
 
 class Player {
@@ -23,10 +25,13 @@ class Player {
 		const sf::Vector2f getPosition() const;
 		const sf::FloatRect getGlobalBounds() const;
 		const sf::Vector2f getVelocity() const;
+		const bool getCanStand() const { return canStand; };
 		Collider getCollider();
 
 		//Modifiers
 		inline void setCanJump(bool can_jump) {canJump = can_jump;};
+		inline void setCrouching(bool crouching) {isCrouching = crouching;};
+		inline void setCanStand(bool stand) { canStand = stand; };
 		void setPosition(const float x, const float y);
 		void resetVelocityY();
 	
@@ -46,6 +51,8 @@ class Player {
 		sf::RectangleShape colliderBody;
 		bool isMoving;
 		bool canJump;
+		bool canStand;
+		bool isCrouching;
 		sf::Clock animationTimer;
 
 		void initVariables();

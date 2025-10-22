@@ -93,7 +93,6 @@ void Game::renderTileMap()
 void Game::updateInput()
 {
 	//Update mouse positions
-	std::cout << int(sf::Mouse::getPosition(window).x) / int(tileMap->getTileSize()) << ", " << int(sf::Mouse::getPosition(window).y) / int(tileMap->getTileSize()) << "\n";
 	const int mouseX = sf::Mouse::getPosition(window).x / int(tileMap->getTileSize());
 	const int mouseY = sf::Mouse::getPosition(window).y / int(tileMap->getTileSize());
 
@@ -110,9 +109,15 @@ void Game::updateInput()
 	{
 		player->jump();
 	}
-	else if (sf::Keyboard::isKeyPressed(keyboardMappings["KEY_CROUCH"]))
+	if (sf::Keyboard::isKeyPressed(keyboardMappings["KEY_CROUCH"]))
 	{
+		player->setCrouching(true);
 		player->move(0.f, 1.f);
+	}
+	else
+	{
+		if (player->getCanStand() == true)
+			player->setCrouching(false);
 	}
 
 	//Tile functions
@@ -123,7 +128,8 @@ void Game::updateInput()
 			{float(mouseX * tileMap->getTileSize()), float(mouseY * tileMap->getTileSize())},
 			{float(tileMap->getTileSize()), float(tileMap->getTileSize())}
 		);
-		tileMap->addTile(mouseX, mouseY);
+		if (!playerBounds.findIntersection(mouseBounds))
+			tileMap->addTile(mouseX, mouseY);
 	}
 	else if (sf::Mouse::isButtonPressed(mouseMappings["BTN_REMOVE_TILE"]))
 	{
