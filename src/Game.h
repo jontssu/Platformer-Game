@@ -2,6 +2,7 @@
 
 #include "Player.h"
 #include "Tilemap.h"
+#include "Enemy.h"
 
 enum class GameState {
 	MENU,
@@ -9,7 +10,13 @@ enum class GameState {
 	INSTRUCTIONS,
 	PLAYING,
 	PAUSED,
-	FINISHED
+	FINISHED,
+	DIED
+};
+
+enum class EnemyMovementType {
+	VERTICAL = true, 
+	HORIZONTAL = false
 };
 
 class Game {
@@ -21,6 +28,7 @@ class Game {
 
 		void updateInput();
 		void updatePlayer();
+		void updateEnemies();
 		void updateCollision();
 		void updateTileMap();
 		void updateMenu();
@@ -28,10 +36,12 @@ class Game {
 
 		void renderPlayer();
 		void renderTileMap();
+		void renderEnemies();
 		void renderTime();
 		void renderAmountOfPlaceableBlocks();
 		void renderMenu();
 		void renderFinishedScreen();
+		void renderDeathScreen();
 		void render();
 
 	private:
@@ -46,6 +56,7 @@ class Game {
 
 		Player* player;
 		Tilemap* tileMap;
+		std::vector<Enemy*> enemies;
 		std::map<std::string, sf::Keyboard::Key> keyboardMappings;
 		std::map<std::string, sf::Mouse::Button> mouseMappings;;
 
@@ -54,5 +65,6 @@ class Game {
 		void initTileSheet();
 		void initPlayer();
 		void initTileMap();
+		void initEnemies();
 		void initFont();
 };

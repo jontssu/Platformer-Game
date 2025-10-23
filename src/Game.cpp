@@ -20,6 +20,13 @@ Game::~Game()
 		delete player;
 	if (tileMap != nullptr)
 		delete tileMap;
+	
+	// Clean up enemies
+	for (auto* enemy : enemies)
+	{
+		delete enemy;
+	}
+	enemies.clear();
 }
 
 const sf::RenderWindow &Game::getWindow() const
@@ -69,6 +76,28 @@ void Game::initTileMap()
 	tileMap = new Tilemap(25, 19, &tileSheet, 32, currentLevel);
 }
 
+void Game::initEnemies()
+{
+	// Clear existing enemies
+	for (auto* enemy : enemies)
+	{
+		delete enemy;
+	}
+	enemies.clear();
+
+	enemies.push_back(new Enemy(7 * 32.f, 1 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 15 * 32.f));
+	enemies.push_back(new Enemy(8 * 32.f, 1 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 15 * 32.f));
+
+	enemies.push_back(new Enemy(3 * 32.f, 2 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 1 * 32.f, 2 * 32.f));
+	enemies.push_back(new Enemy(4 * 32.f, 4 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 2 * 32.f, 1 * 32.f));
+	enemies.push_back(new Enemy(5 * 32.f, 6 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 3 * 32.f, 0 * 32.f));
+
+
+	enemies.push_back(new Enemy(17 * 32.f, 2 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 12 * 32.f));
+	enemies.push_back(new Enemy(20 * 32.f, 10 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 8 * 32.f, 4 * 32.f));
+	enemies.push_back(new Enemy(11 * 32.f, 14 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 0 * 32.f, 11 * 32.f));
+}
+
 void Game::initFont()
 {
 	if (!font.openFromFile("/System/Library/Fonts/Helvetica.ttc"))
@@ -91,7 +120,7 @@ void Game::update()
 				else
 					window.close();
 			}
-			else if (currentState == GameState::MENU || currentState == GameState::FINISHED)
+			else if (currentState == GameState::MENU || currentState == GameState::FINISHED || currentState == GameState::DIED)
 			{
 				if (keyPressed->code == sf::Keyboard::Key::Enter || keyPressed->code == sf::Keyboard::Key::Space)
 				{
@@ -101,6 +130,7 @@ void Game::update()
 						initPlayer();
 					if (tileMap == nullptr)
 						initTileMap();
+					initEnemies(); // Always reinitialize enemies
 					time = 0.f;
 					newHighScore = false;
 				}
@@ -155,6 +185,7 @@ void Game::update()
 	{
 		updateInput();
 		updatePlayer();
+		updateEnemies();
 		updateCollision();
 		updateTileMap();
 	}
@@ -171,6 +202,15 @@ void Game::renderPlayer()
 {
 	if (player != nullptr)
 		player->render(window);
+}
+
+void Game::renderEnemies()
+{
+	for (auto* enemy : enemies)
+	{
+		if (enemy != nullptr)
+			enemy->render(window);
+	}
 }
 
 void Game::renderTileMap()
@@ -253,6 +293,15 @@ void Game::updatePlayer()
 		player->update();
 }
 
+void Game::updateEnemies()
+{
+	for (auto* enemy : enemies)
+	{
+		if (enemy != nullptr)
+			enemy->update();
+	}
+}
+
 void Game::updateCollision()
 {
 	//Collision with tiles
@@ -295,7 +344,7 @@ void Game::updateCollision()
 						delete tileMap;
 						player = nullptr;
 						tileMap = nullptr;
-						currentState = GameState::MENU;
+						currentState = GameState::DIED;
 						return; // Exit immediately to avoid accessing deleted objects
 					}
 					if (tile->getType() == TILE_POWERUP_EXTRA_BLOCK)
@@ -365,6 +414,29 @@ void Game::updateCollision()
 			}
 		}
 	}
+
+	//Collision with enemies
+	for (const auto& enemy : enemies)
+	{
+		if (enemy != nullptr)
+		{
+			sf::FloatRect playerBounds = player->getGlobalBounds();
+			sf::FloatRect enemyBounds = enemy->getGlobalBounds();
+			
+			if (playerBounds.findIntersection(enemyBounds))
+			{
+				// Reset game when player collides with enemy
+				delete player;
+				delete tileMap;
+				player = nullptr;
+				tileMap = nullptr;
+				currentState = GameState::DIED;
+				return; // Exit immediately to avoid accessing deleted objects
+			}
+		}
+	}
+
+
 
 	// Check if player can stand (ceiling check for crouching)
 	if (player->getIsCrouching())
@@ -526,6 +598,21 @@ void Game::renderFinishedScreen()
 	window.draw(timeText);
 }
 
+void Game::renderDeathScreen()
+{
+	sf::Text deathText(font, "YOU DIED!", 48);
+	deathText.setFillColor(sf::Color::Red);
+	deathText.setPosition({400.f - deathText.getGlobalBounds().size.x / 2.f, 250.f});
+
+	
+	sf::Text escapeText(font, "Press ENTER to try again...", 16);
+	escapeText.setFillColor(sf::Color::White);
+	escapeText.setPosition({400.f - escapeText.getGlobalBounds().size.x / 2.f, 350.f});
+
+	window.draw(deathText);
+	window.draw(escapeText);
+}
+
 void Game::render()
 {
 	window.clear();
@@ -537,6 +624,7 @@ void Game::render()
 	else if (currentState == GameState::PLAYING)
 	{
 		renderTileMap();
+		renderEnemies();
 		renderPlayer();
 		renderAmountOfPlaceableBlocks();
 		renderTime();
@@ -544,6 +632,10 @@ void Game::render()
 	else if (currentState == GameState::FINISHED)
 	{
 		renderFinishedScreen();
+	}
+	else if (currentState == GameState::DIED)
+	{
+		renderDeathScreen();
 	}
 
 	window.display();
