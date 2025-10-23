@@ -22,9 +22,11 @@ class Player {
 		//Getters
 		const bool getAnimSwitch();
 		inline const bool getCanJump() const { return canJump; };
+		inline const bool getIsCrouching() const { return isCrouching; };
 		const sf::Vector2f getPosition() const;
 		const sf::FloatRect getGlobalBounds() const;
 		const sf::Vector2f getVelocity() const;
+		const int getPlaceableBlocks() const { return placeableBlocks; };
 		const bool getCanStand() const { return canStand; };
 		Collider getCollider();
 
@@ -34,6 +36,7 @@ class Player {
 		inline void setCanStand(bool stand) { canStand = stand; };
 		void setPosition(const float x, const float y);
 		void resetVelocityY();
+		inline void addBlock(int amount) { placeableBlocks += amount; };
 	
 		//Functions
 		void resetAnimationTimer();
@@ -53,6 +56,7 @@ class Player {
 		bool canJump;
 		bool canStand;
 		bool isCrouching;
+		int placeableBlocks;
 		sf::Clock animationTimer;
 
 		void initVariables();

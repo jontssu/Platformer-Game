@@ -17,6 +17,7 @@ void Player::initVariables()
 	canJump = false;
 	isCrouching = false;
 	canStand = true;
+	placeableBlocks = 0;
 }
 
 void Player::initPhysics()
@@ -26,7 +27,7 @@ void Player::initPhysics()
 	acceleration = 2.5f;
 	drag = 0.80f;
 	gravity = 2.5f;
-	velocityMaxY = 40.f;
+	velocityMaxY = 30.f;
 }
 
 void Player::initTexture()
@@ -221,7 +222,7 @@ void Player::move(const float dirX, const float dirY)
 
 void Player::jump()
 {
-	velocity.y = -70.f;
+	velocity.y = -50.f;
 	canJump = false;
 }
 
