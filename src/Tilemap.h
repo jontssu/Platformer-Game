@@ -23,6 +23,7 @@ class Tilemap {
 	private:
 		std::vector< std::vector<Tile*> > tiles;
 		sf::Texture *tileSheet;
+		sf::Texture playerSheet;
 		int tileSize;
 		int currentLevel;
 };

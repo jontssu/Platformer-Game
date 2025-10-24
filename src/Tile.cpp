@@ -18,7 +18,7 @@ Tile::Tile(const unsigned& grid_pos_x, const unsigned& grid_pos_y, const unsigne
 			timer = 0;
 			break;
 		case TILE_POWERUP_JUMP_BOOST:
-			sprite.setTextureRect(sf::IntRect({96, 36}, {size, size})); // Another texture for jump boost block
+			sprite.setTextureRect(sf::IntRect({528, 400}, {32, 48})); // Another texture for jump boost block
 			break;
 		case TILE_PLACEABLE:
 			sprite.setTextureRect(sf::IntRect({224, 36}, {size, size})); 

@@ -47,6 +47,7 @@ class Game {
 	private:
 		sf::RenderWindow window;
 		sf::Texture tileSheet;
+		sf::Texture enemySheet;
 		sf::Font font;
 		int currentLevel;
 		GameState currentState;
@@ -62,7 +63,7 @@ class Game {
 
 		void initWindow();
 		void initInput();
-		void initTileSheet();
+		void initSheets();
 		void initPlayer();
 		void initTileMap();
 		void initEnemies();

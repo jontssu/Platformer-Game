@@ -12,6 +12,10 @@ Tilemap::Tilemap()
 Tilemap::Tilemap(unsigned width, unsigned height, sf::Texture *tile_sheet, unsigned tile_size, int current_level)
 : tileSheet(tile_sheet), tileSize(tile_size), currentLevel(current_level)
 {
+	if (!playerSheet.loadFromFile("textures/texturesheet.png"))
+	{
+		std::cout << "ERROR::TILEMAP::CONSTRUCTOR::FAILED TO LOAD PLAYERSHEET" << "\n";
+	}
 	tiles.resize(width);
 	for (int i = 0; i < tiles.size(); i++)
 		tiles[i].resize(height, nullptr);
@@ -36,7 +40,7 @@ Tilemap::Tilemap(unsigned width, unsigned height, sf::Texture *tile_sheet, unsig
 				x++;
 			} else if (ch == '3') {
 				if (x < width && y < height) {
-					tiles[x][y] = new Tile(x, y, tileSize, tileSheet, sf::IntRect({32, 36}, {tileSize, tileSize}), false, TILE_POWERUP_JUMP_BOOST);
+					tiles[x][y] = new Tile(x, y, tileSize, &playerSheet, sf::IntRect({32, 36}, {tileSize, tileSize}), false, TILE_POWERUP_JUMP_BOOST);
 				}
 				x++;
 			} else if (ch == '4') {

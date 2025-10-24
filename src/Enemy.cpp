@@ -26,7 +26,7 @@ Enemy::Enemy(float x, float y, sf::Texture* texture_sheet, bool vertical_movemen
 void Enemy::initSprite(float x, float y)
 {
 	// Set enemy texture (using a different part of the tile sheet)
-	sprite.setTextureRect(sf::IntRect({64, 100}, {32, 32})); // Adjust coordinates as needed
+	sprite.setTextureRect(sf::IntRect({((rand() % 7) * 32) + 32, ((rand() % 3) * 32) + 32}, {32, 32})); // Adjust coordinates as needed
 	sprite.setPosition({x, y});
 	sprite.setScale({1.f, 1.f});
 }
@@ -96,16 +96,16 @@ void Enemy::render(sf::RenderTarget& target)
 		target.draw(sprite);
 		
 		// Debug: draw collision box
-		if (DEBUG_MODE)
-		{
-			sf::RectangleShape debugBox;
-			sf::FloatRect bounds = sprite.getGlobalBounds();
-			debugBox.setPosition(bounds.position);
-			debugBox.setSize(bounds.size);
-			debugBox.setFillColor(sf::Color::Transparent);
-			debugBox.setOutlineThickness(1.f);
-			debugBox.setOutlineColor(sf::Color::Blue);
-			target.draw(debugBox);
-		}
+		// if (DEBUG_MODE)
+		// {
+		// 	sf::RectangleShape debugBox;
+		// 	sf::FloatRect bounds = sprite.getGlobalBounds();
+		// 	debugBox.setPosition(bounds.position);
+		// 	debugBox.setSize(bounds.size);
+		// 	debugBox.setFillColor(sf::Color::Transparent);
+		// 	debugBox.setOutlineThickness(1.f);
+		// 	debugBox.setOutlineColor(sf::Color::Blue);
+		// 	target.draw(debugBox);
+		// }
 	}
 }

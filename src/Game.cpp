@@ -6,7 +6,7 @@ Game::Game()
 	currentState = GameState::MENU; // Start in menu state
 	initWindow();
 	initInput();
-	initTileSheet();
+	initSheets();
 	initFont();
 	// Don't initialize player and tilemap until game starts
 	player = nullptr;
@@ -58,11 +58,15 @@ void Game::initInput()
 	keyboardMappings["KEY_DELETE"] = sf::Keyboard::Key::X;
 }
 
-void Game::initTileSheet()
+void Game::initSheets()
 {
 	if (!tileSheet.loadFromFile("textures/blocksheet.png"))
 	{
 		std::cout << "ERROR::GAME::INITTILESHEET::FAILED TO LOAD TILESHEET" << "\n";
+	}
+	if (!enemySheet.loadFromFile("textures/enemies.png"))
+	{
+		std::cout << "ERROR::GAME::INITENEMYSHEET::FAILED TO LOAD ENEMYSHEET" << "\n";
 	}
 }
 
@@ -76,6 +80,14 @@ void Game::initTileMap()
 	tileMap = new Tilemap(25, 19, &tileSheet, 32, currentLevel);
 }
 
+// void Game::initEnemySheet()
+// {
+// 	if (!tileSheet.loadFromFile("textures/enemysheet.png"))
+// 	{
+// 		std::cout << "ERROR::GAME::INITENEMYSHEET::FAILED TO LOAD ENEMYSHEET" << "\n";
+// 	}
+// }
+
 void Game::initEnemies()
 {
 	// Clear existing enemies
@@ -85,17 +97,17 @@ void Game::initEnemies()
 	}
 	enemies.clear();
 
-	enemies.push_back(new Enemy(7 * 32.f, 1 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 15 * 32.f));
-	enemies.push_back(new Enemy(8 * 32.f, 1 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 15 * 32.f));
+	enemies.push_back(new Enemy(7 * 32.f, 1 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 16 * 32.f));
+	enemies.push_back(new Enemy(8 * 32.f, 1 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 16 * 32.f));
 
-	enemies.push_back(new Enemy(3 * 32.f, 2 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 1 * 32.f, 2 * 32.f));
-	enemies.push_back(new Enemy(4 * 32.f, 4 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 2 * 32.f, 1 * 32.f));
-	enemies.push_back(new Enemy(5 * 32.f, 6 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 3 * 32.f, 0 * 32.f));
+	enemies.push_back(new Enemy(3 * 32.f, 2 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 1 * 32.f, 2 * 32.f));
+	enemies.push_back(new Enemy(4 * 32.f, 4 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 2 * 32.f, 1 * 32.f));
+	enemies.push_back(new Enemy(5 * 32.f, 6 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 3 * 32.f, 0 * 32.f));
 
 
-	enemies.push_back(new Enemy(17 * 32.f, 2 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 12 * 32.f));
-	enemies.push_back(new Enemy(20 * 32.f, 10 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::VERTICAL), 8 * 32.f, 4 * 32.f));
-	enemies.push_back(new Enemy(11 * 32.f, 14 * 32.f, &tileSheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 0 * 32.f, 11 * 32.f));
+	enemies.push_back(new Enemy(17 * 32.f, 2 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::VERTICAL), 0 * 32.f, 12 * 32.f));
+	enemies.push_back(new Enemy(20 * 32.f, 10 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::VERTICAL), 8 * 32.f, 4 * 32.f));
+	enemies.push_back(new Enemy(11 * 32.f, 14 * 32.f, &enemySheet, static_cast<bool>(EnemyMovementType::HORIZONTAL), 0 * 32.f, 11 * 32.f));
 }
 
 void Game::initFont()
@@ -241,7 +253,7 @@ void Game::renderAmountOfPlaceableBlocks()
 		text.setString("Placeable Blocks: " + std::to_string(player->getPlaceableBlocks()));
 		text.setCharacterSize(20);
 		text.setFillColor(sf::Color::White);
-		text.setPosition({10.f, 10.f});
+		text.setPosition({200.f, 10.f});
 
 		window.draw(text);
 	}
@@ -327,6 +339,7 @@ void Game::updateCollision()
 						currentState = GameState::FINISHED;
 						if (time < bestTime)
 						{
+							bestTime = time;
 							newHighScore = true;
 							std::ofstream highscoreFile("levels/highscore.txt");
 							if (highscoreFile.is_open())
@@ -577,7 +590,7 @@ void Game::renderFinishedScreen()
 	finishedText.setPosition({400.f - finishedText.getGlobalBounds().size.x / 2.f, 250.f});
 
 	
-	sf::Text escapeText(font, "Press ESC or ENTER to enter the next map", 16);
+	sf::Text escapeText(font, "Press SPACE or ENTER to play again", 16);
 	escapeText.setFillColor(sf::Color::White);
 	escapeText.setPosition({400.f - escapeText.getGlobalBounds().size.x / 2.f, 350.f});
 
@@ -604,8 +617,8 @@ void Game::renderDeathScreen()
 	deathText.setFillColor(sf::Color::Red);
 	deathText.setPosition({400.f - deathText.getGlobalBounds().size.x / 2.f, 250.f});
 
-	
-	sf::Text escapeText(font, "Press ENTER to try again...", 16);
+
+	sf::Text escapeText(font, "Press SPACE or ENTER to try again...\n              or press ESC to exit :(", 16);
 	escapeText.setFillColor(sf::Color::White);
 	escapeText.setPosition({400.f - escapeText.getGlobalBounds().size.x / 2.f, 350.f});
 
