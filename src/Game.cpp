@@ -290,7 +290,6 @@ void Game::updateInput()
 	else if (sf::Keyboard::isKeyPressed(keyboardMappings["KEY_CROUCH"]))
 	{
 		player->setCrouching(true);
-		player->move(0.f, 1.f);
 	}
 	else
 	{

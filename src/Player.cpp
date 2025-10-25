@@ -17,7 +17,7 @@ void Player::initVariables()
 	canJump = false;
 	isCrouching = false;
 	canStand = true;
-	placeableBlocks = 0;
+	placeableBlocks = 50;
 }
 
 void Player::initPhysics()
